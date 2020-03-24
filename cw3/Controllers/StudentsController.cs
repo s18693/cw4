@@ -10,7 +10,7 @@ namespace cw3.Controllers
     [Route("api/students")]
     public class StudentsController : ControllerBase
     {
-        [HttpGet("sql")]
+        [HttpGet("sql/get")]
         public IActionResult GetStudents(string index)
         {
 
@@ -36,16 +36,24 @@ namespace cw3.Controllers
 
         }
 
-        [HttpPost]
+        [HttpPost("sql/crt")]
         public IActionResult CreateStudent(Student student)
         {
             using (var client = new SqlConnection("Data Source=db-mssql;Initial Catalog=s18693;Integrated Security=True"))
             using (var command = new SqlCommand())
             {
+                command.Connection = client;
+                command.CommandText = "Insert into Student values (@index,@Fname,@Lname,@Date,@E) ";
+                command.Parameters.AddWithValue("index", student.IndexNumber);
+                command.Parameters.AddWithValue("Fname", student.FirstName);
+                command.Parameters.AddWithValue("Lname", student.LastName);
+                command.Parameters.AddWithValue("Date", student.BirthDate);
+                command.Parameters.AddWithValue("E", student.IdEnrollment);
 
-                student.IndexNumber = $"s{new Random().Next(1, 20000)}";
+                client.Open();
+                command.ExecuteNonQuery();
             }
-            return Ok(student);
+            return StatusCode((int)System.Net.HttpStatusCode.Created);
         }
         [HttpPut("{id}")]
         public IActionResult UpdateStudetn(int id)
